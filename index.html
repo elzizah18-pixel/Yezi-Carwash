@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antrian Cuci Mobil - 3 Jalur Layanan</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Antrian Cuci Mobil</h1>
+        <p class="subtitle">3 Jalur Layanan: Manual | Otomatis | Hidrolik (Bisa Berjalan Bersamaan)</p>
+
+        <!-- Notifikasi -->
+        <div id="notif" class="notif"></div>
+
+        <!-- Form Input -->
+        <div class="form-group">
+            <label for="namaInput">👤 Nama Pemilik Mobil</label>
+            <input type="text" id="namaInput" placeholder="Masukkan nama pelanggan...">
+
+            <label>🔧 Pilih Jenis Layanan</label>
+            <div class="layanan-options">
+                <div class="layanan-card" onclick="pilihLayanan('manual')" id="card-manual">
+                    <span class="icon">🧹</span>
+                    <span class="nama-layanan">Manual</span>
+                    <span class="harga">Rp 30.000</span>
+                    <span class="estimasi">⏱ 90 detik</span>
+                </div>
+                <div class="layanan-card" onclick="pilihLayanan('otomatis')" id="card-otomatis">
+                    <span class="icon">🤖</span>
+                    <span class="nama-layanan">Otomatis</span>
+                    <span class="harga">Rp 50.000</span>
+                    <span class="estimasi">⏱ 75 detik</span>
+                </div>
+                <div class="layanan-card" onclick="pilihLayanan('hidrolik')" id="card-hidrolik">
+                    <span class="icon">💧</span>
+                    <span class="nama-layanan">Hidrolik</span>
+                    <span class="harga">Rp 80.000</span>
+                    <span class="estimasi">⏱ 60 detik</span>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-tambah" onclick="tambahAntrian()">
+                    <span class="btn-icon">➕</span> Enqueue (Tambah Antrian)
+                </button>
+                <button class="btn-reset" onclick="resetSemuaAntrian()">
+                    <span class="btn-icon">🗑</span> Clear All (Hapus Semua)
+                </button>
+            </div>
+        </div>
+
+        <!-- 3 Panel Layanan Berdampingan -->
+        <div class="panel-container">
+            <!-- PANEL MANUAL -->
+            <div class="panel-layanan panel-manual">
+                <div class="panel-header">
+                    <span class="panel-icon">🧹</span>
+                    <h3>MANUAL</h3>
+                    <span class="panel-harga">Rp 30K</span>
+                </div>
+                <div id="statusManual" class="status-cuci">
+                    <div class="status-header">
+                        <span class="icon-cuci">🧹</span>
+                        <span class="status-text" id="statusTextManual">Siap</span>
+                    </div>
+                    <div class="status-info" id="statusInfoManual"></div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progressBarManual"></div>
+                    </div>
+                    <div class="timer-text" id="timerTextManual">00:00</div>
+                </div>
+                <button class="btn-cuci" id="btnCuciManual" onclick="cuciMobil('manual')">
+                    🧽 Dequeue (Cuci Manual)
+                </button>
+                <div class="antrian-mini">
+                    <h4>📋 Antrian Manual</h4>
+                    <div id="daftarAntrianManual">
+                        <p class="kosong">Antrian kosong</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL OTOMATIS -->
+            <div class="panel-layanan panel-otomatis">
+                <div class="panel-header">
+                    <span class="panel-icon">🤖</span>
+                    <h3>OTOMATIS</h3>
+                    <span class="panel-harga">Rp 50K</span>
+                </div>
+                <div id="statusOtomatis" class="status-cuci">
+                    <div class="status-header">
+                        <span class="icon-cuci">🤖</span>
+                        <span class="status-text" id="statusTextOtomatis">Siap</span>
+                    </div>
+                    <div class="status-info" id="statusInfoOtomatis"></div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progressBarOtomatis"></div>
+                    </div>
+                    <div class="timer-text" id="timerTextOtomatis">00:00</div>
+                </div>
+                <button class="btn-cuci" id="btnCuciOtomatis" onclick="cuciMobil('otomatis')">
+                    🧽 Dequeue (Cuci Otomatis)
+                </button>
+                <div class="antrian-mini">
+                    <h4>📋 Antrian Otomatis</h4>
+                    <div id="daftarAntrianOtomatis">
+                        <p class="kosong">Antrian kosong</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL HIDROLIK -->
+            <div class="panel-layanan panel-hidrolik">
+                <div class="panel-header">
+                    <span class="panel-icon">💧</span>
+                    <h3>HIDROLIK</h3>
+                    <span class="panel-harga">Rp 80K</span>
+                </div>
+                <div id="statusHidrolik" class="status-cuci">
+                    <div class="status-header">
+                        <span class="icon-cuci">💧</span>
+                        <span class="status-text" id="statusTextHidrolik">Siap</span>
+                    </div>
+                    <div class="status-info" id="statusInfoHidrolik"></div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progressBarHidrolik"></div>
+                    </div>
+                    <div class="timer-text" id="timerTextHidrolik">00:00</div>
+                </div>
+                <button class="btn-cuci" id="btnCuciHidrolik" onclick="cuciMobil('hidrolik')">
+                    🧽 Dequeue (Cuci Hidrolik)
+                </button>
+                <div class="antrian-mini">
+                    <h4>📋 Antrian Hidrolik</h4>
+                    <div id="daftarAntrianHidrolik">
+                        <p class="kosong">Antrian kosong</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
