@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚗 YeZi Car Wash - Animasi | Queue FIFO</title>
+    
+    <!-- ========================================= -->
+    <!-- CSS INTERNAL (Langsung dalam HTML)        -->
+    <!-- ========================================= -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            padding: 15px;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1300px;
+            text-align: center;
+        }
+
+        /* HEADER */
+        h1 {
+            font-size: 32px;
+            color: #ffd700;
+            margin-bottom: 5px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .subtitle {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* NOTIFIKASI */
+        .notif {
+            background: #4caf50;
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: none;
+            font-weight: 600;
+            white-space: pre-line;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .notif.show {
+            display: block;
+            animation: slideDown 0.4s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* DASHBOARD */
+        .dashboard {
+            background: rgba(255,255,255,0.08);
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+            border: 2px solid rgba(255,215,0,0.2);
+        }
+
+        .dashboard-item {
+            text-align: center;
+        }
+
+        .dashboard-item .label {
+            font-size: 10px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .dashboard-item .value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffd700;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); color: #ff9800; }
+        }
+
+        .dashboard .value.updated {
+            animation: pulse 0.4s ease;
+        }
+
+        /* FORM */
+        .form-group {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-align: left;
+            color: #ccc;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 2px solid #333;
+            background: #111;
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 15px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .form-group input[type="text"]:focus {
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255,215,0,0.2);
+        }
+
+        /* KARTU LAYANAN */
+        .layanan-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .layanan-card {
+            flex: 1;
+            min-width: 100px;
+            padding: 15px 10px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.3s;
+            text-align: center;
+        }
+
+        .layanan-card:hover {
+            border-color: #ffd700;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .layanan-card.selected {
+            border-color: #ffd700;
+            background: #e94560;
+            box-shadow: 0 0 25px rgba(233,69,96,0.5);
+        }
+
+        .layanan-card .icon { font-size: 35px; display: block; margin-bottom: 5px; }
+        .layanan-card .nama-layanan { font-weight: 700; font-size: 14px; display: block; }
+        .layanan-card .harga { font-size: 11px; color: #ccc; display: block; }
+        .layanan-card .estimasi { font-size: 10px; color: #999; display: block; }
+
+        /* TOMBOL */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.3s;
+            color: #fff;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-tambah { background: #4caf50; }
+        .btn-reset { background: #f44336; }
+        .btn-cuci {
+            background: #2196F3;
+            width: 100%;
+            margin-top: 5px;
+            padding: 14px;
+            font-size: 15px;
+        }
+
+        /* PANEL AREA */
+        .panel-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .jalur-cuci {
+            flex: 1;
+            min-width: 350px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+        }
+
+        .jalur-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px;
+            font-weight: 700;
+        }
+
+        .jalur-manual .jalur-header { background: #ff9800; }
+        .jalur-otomatis .jalur-header { background: #2196F3; }
+        .jalur-hidrolik .jalur-header { background: #e94560; }
+
+        .jalur-header h3 { font-size: 16px; }
+
+        /* AREA ANTRIAN */
+        .area-antrian {
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+            min-height: 100px;
+        }
+
+        .jalan-raya {
+            background: #333;
+            border-radius: 8px;
+            padding: 15px 10px;
+            min-height: 60px;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .slot-antrian {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mobil-antrian-item {
+            font-size: 40px;
+            display: inline-block;
+            animation: mobilMasuk 0.5s ease;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .mobil-antrian-item::after {
+            content: attr(data-nama);
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            background: #000;
+            color: #fff;
+            padding: 10px 10px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+
+        @keyframes mobilMasuk {
+            from { transform: translateX(-60px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .label-area {
+            font-size: 10px;
+            color: #888;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* AREA CUCI */
+        .area-cuci {
+            padding: 10px;
+            background: rgba(0,0,50,0.3);
+            min-height: 120px;
+        }
+
+        .ruang-cuci {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 15px;
+            position: relative;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .mobil-cuci-container {
+            font-size: 60px;
+            z-index: 2;
+            transition: 0.5s;
+        }
+
+        .mobil-cuci-container.terangkat {
+            animation: naikTurun 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes naikTurun {
+            from { transform: translateY(0); }
+            to { transform: translateY(-25px); }
+        }
+
+        .mobil-sedang-dicuci {
+            display: inline-block;
+            animation: goyang 0.3s ease infinite;
+        }
+
+        @keyframes goyang {
+            0%, 100% { transform: rotate(0); }
+            25% { transform: rotate(-4deg); }
+            75% { transform: rotate(4deg); }
+        }
+
+        /* Efek Cucian */
+        .efek-cucian {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 3;
+            display: none;
+        }
+
+        .efek-cucian span {
+            position: absolute;
+            font-size: 28px;
+        }
+
+        .efek-cucian .pekerja { left: 10%; top: 30%; animation: geser 1.5s ease-in-out infinite; }
+        .efek-cucian .robot { left: 10%; top: 30%; animation: geser 1.5s ease-in-out infinite; }
+        .efek-cucian .spons { left: 30%; top: 40%; animation: putar 1s linear infinite; }
+        .efek-cucian .sabun { left: 50%; top: 20%; animation: busa 2s ease-in-out infinite; }
+        .efek-cucian .air { right: 25%; top: 35%; animation: semprot 0.6s ease-in-out infinite; }
+        .efek-cucian .sikat { left: 40%; top: 25%; animation: putar 0.8s linear infinite; }
+        .efek-cucian .lift { left: 15%; bottom: 15%; font-size: 35px; }
+
+        @keyframes geser {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(25px); }
+        }
+
+        @keyframes putar {
+            from { transform: rotate(0); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes busa {
+            0%, 100% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.5); opacity: 1; }
+        }
+
+        @keyframes semprot {
+            0%, 100% { transform: translateY(0); opacity: 0.5; }
+            50% { transform: translateY(-15px); opacity: 1; }
+        }
+
+        /* Progress */
+        .progress-container {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            height: 10px;
+            overflow: hidden;
+            margin-top: 8px;
+            width: 100%;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #4caf50;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .timer-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffd700;
+            font-family: monospace;
+            margin-top: 3px;
+        }
+
+        /* AREA KELUAR */
+        .area-keluar {
+            padding: 10px;
+            background: rgba(0,50,0,0.2);
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobil-bersih-container {
+            font-size: 55px;
+        }
+
+        .mobil-selesai {
+            display: inline-block;
+        }
+
+        .mobil-selesai.kinclong {
+            animation: kinclong 0.6s ease infinite alternate;
+        }
+
+        @keyframes kinclong {
+            from { filter: brightness(1); transform: scale(1); }
+            to { filter: brightness(1.5) drop-shadow(0 0 15px gold); transform: scale(1.15); }
+        }
+
+        /* CONFETTI */
+        .confetti-particle {
+            position: fixed;
+            top: -50px;
+            z-index: 9999;
+            pointer-events: none;
+            animation: confettiJatuh 2.5s ease-out forwards;
+        }
+
+        @keyframes confettiJatuh {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1100px) {
+            .panel-container { flex-direction: column; }
+            .jalur-cuci { min-width: 100%; }
+        }
+
+        @media (max-width: 500px) {
+            h1 { font-size: 22px; }
+            .mobil-cuci-container { font-size: 40px; }
+            .mobil-bersih-container { font-size: 40px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========================================= -->
+    <!-- KONTAINER UTAMA                           -->
+    <!-- ========================================= -->
+    <div class="container">
+        
+        <h1>🚗 YEZI CAR WASH</h1>
+        <p class="subtitle">3 Jalur Layanan: Manual | Otomatis | Hidrolik | Queue FIFO</p>
+
+        <!-- DASHBOARD -->
+        <div class="dashboard">
+            <div class="dashboard-item">
+                <div class="label">✅ Total Dicuci</div>
+                <div class="value" id="totalDicuci">0</div>
+            </div>
+            <div class="dashboard-item">
+                <div class="label">💰 Pendapatan</div>
+                <div class="value" id="totalPendapatan">Rp 0</div>
+            </div>
+            <div class="dashboard-item">
+                <div class="label">📋 Antrian</div>
+                <div class="value" id="totalAntrian">0</div>
+            </div>
+            <div class="dashboard-item">
+                <div class="label">⭐ Rating</div>
+                <div class="value" id="rating">-</div>
+            </div>
+        </div>
+
+        <!-- NOTIFIKASI -->
+        <div id="notif" class="notif"></div>
+
+        <!-- FORM INPUT -->
+        <div class="form-group">
+            <label>👤 Nama Pemilik Mobil</label>
+            <input type="text" id="namaInput" placeholder="Masukkan nama pelanggan...">
+
+            <label>🔧 Pilih Layanan</label>
+            <div class="layanan-options">
+                <div class="layanan-card" onclick="pilihLayanan('manual')" id="card-manual">
+                    <span class="icon">🧹</span>
+                    <span class="nama-layanan">Manual</span>
+                    <span class="harga">Rp 30K</span>
+                    <span class="estimasi">⏱ 90 detik</span>
+                </div>
+                <div class="layanan-card" onclick="pilihLayanan('otomatis')" id="card-otomatis">
+                    <span class="icon">🤖</span>
+                    <span class="nama-layanan">Otomatis</span>
+                    <span class="harga">Rp 50K</span>
+                    <span class="estimasi">⏱ 75 detik</span>
+                </div>
+                <div class="layanan-card" onclick="pilihLayanan('hidrolik')" id="card-hidrolik">
+                    <span class="icon">💧</span>
+                    <span class="nama-layanan">Hidrolik</span>
+                    <span class="harga">Rp 80K</span>
+                    <span class="estimasi">⏱ 60 detik</span>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-tambah" onclick="tambahAntrian()">➕ Enqueue (Tambah)</button>
+                <button class="btn-reset" onclick="resetSemuaAntrian()">🗑 Clear All</button>
+            </div>
+        </div>
+
+        <!-- PANEL 3 JALUR -->
+        <div class="panel-container">
+            
+            <!-- ============== MANUAL ============== -->
+            <div class="jalur-cuci jalur-manual">
+                <div class="jalur-header"><span>🧹</span><h3>MANUAL</h3><span>Rp 30K</span></div>
+                
+                <div class="area-antrian">
+                    <div class="jalan-raya">
+                        <div class="slot-antrian" id="slotAntrianManual"></div>
+                    </div>
+                    <span class="label-area">📋 Antrian (Maks: 5)</span>
+                </div>
+
+                <div class="area-cuci">
+                    <div class="ruang-cuci" style="position:relative;">
+                        <div class="mobil-cuci-container" id="mobilCuciManual">
+                            <span class="mobil-sedang-dicuci">🚙</span>
+                        </div>
+                        <div class="efek-cucian" id="efekManual">
+                            <span class="pekerja">👨‍🔧</span>
+                            <span class="spons">🧽</span>
+                            <span class="sabun">🫧</span>
+                            <span class="air">💦</span>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progressBarManual"></div>
+                    </div>
+                    <div class="timer-text" id="timerTextManual">00:00</div>
+                </div>
+
+                <button class="btn-cuci" id="btnCuciManual" onclick="cuciMobil('manual')">▶️ Mulai Cuci Manual</button>
+
+                <div class="area-keluar">
+                    <span class="label-area">✅ Selesai</span>
+                    <div class="mobil-bersih-container" id="mobilBersihManual">
+                        <span class="mobil-selesai">🚗</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============== OTOMATIS ============== -->
+            <div class="jalur-cuci jalur-otomatis">
+                <div class="jalur-header"><span>🤖</span><h3>OTOMATIS</h3><span>Rp 50K</span></div>
+                
+                <div class="area-antrian">
+                    <div class="jalan-raya">
+                        <div class="slot-antrian" id="slotAntrianOtomatis"></div>
+                    </div>
+                    <span class="label-area">📋 Antrian (Maks: 7)</span>
+                </div>
+
+                <div class="area-cuci">
+                    <div class="ruang-cuci" style="position:relative;">
+                        <div class="mobil-cuci-container" id="mobilCuciOtomatis">
+                            <span class="mobil-sedang-dicuci">🚗</span>
+                        </div>
+                        <div class="efek-cucian" id="efekOtomatis">
+                            <span class="robot">🤖</span>
+                            <span class="sikat">🪥</span>
+                            <span class="air">💦</span>
+                            <span class="sabun">🫧</span>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progressBarOtomatis"></div>
+                    </div>
+                    <div class="timer-text" id="timerTextOtomatis">00:00</div>
+                </div>
+
+                <button class="btn-cuci" id="btnCuciOtomatis" onclick="cuciMobil('otomatis')">▶️ Mulai Cuci Otomatis</button>
+
+                <div class="area-keluar">
+                    <span class="label-area">✅ Selesai</span>
+                    <div class="mobil-bersih-container" id="mobilBersihOtomatis">
+                        <span class="mobil-selesai">🚗</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============== HIDROLIK ============== -->
+            <div class="jalur-cuci jalur-hidrolik">
+                <div class="jalur-header"><span>💧</span><h3>HIDROLIK</h3><span>Rp 80K</span></div>
+                
+                <div class="area-antrian">
+                    <div class="jalan-raya">
+                        <div class="slot-antrian" id="slotAntrianHidrolik"></div>
+                    </div>
+                    <span class="label-area">📋 Antrian (Maks: 3)</span>
+                </div>
+
+                <div class="area-cuci">
+                    <div class="ruang-cuci" style="position:relative;">
+                        <div class="mobil-cuci-container terangkat" id="mobilCuciHidrolik">
+                            <span class="mobil-sedang-dicuci">🚙</span>
+                        </div>
+                        <div class="efek-cucian" id="efekHidrolik">
+                            <span class="lift">🏗️</span>
+                            <span class="air">💦</span>
+                            <span class="air" style="right:30%; top:40%;">💦</span>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progressBarHidrolik"></div>
+                    </div>
+                    <div class="timer-text" id="timerTextHidrolik">00:00</div>
+                </div>
+
+                <button class="btn-cuci" id="btnCuciHidrolik" onclick="cuciMobil('hidrolik')">▶️ Mulai Cuci Hidrolik</button>
+
+                <div class="area-keluar">
+                    <span class="label-area">✅ Selesai</span>
+                    <div class="mobil-bersih-container" id="mobilBersihHidrolik">
+                        <span class="mobil-selesai">🚗</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- AKHIR PANEL -->
+
+    </div>
+
+    <!-- ========================================= -->
+    <!-- JAVASCRIPT INTERNAL                       -->
+    <!-- ========================================= -->
+    <script>
+        console.log('🚀 Program dimulai...');
+
+        // Data Queue
+        const queues = { 'manual': [], 'otomatis': [], 'hidrolik': [] };
+        const mesinCuci = { 'manual': false, 'otomatis': false, 'hidrolik': false };
+        const timerIntervals = { 'manual': null, 'otomatis': null, 'hidrolik': null };
+        let layananDipilih = '';
+
+        const durasiLayanan = { 'manual': 60, 'otomatis': 75, 'hidrolik':  90}; // Dipercepat untuk demo
+        const namaLayanan = { 'manual': 'MANUAL', 'otomatis': 'OTOMATIS', 'hidrolik': 'HIDROLIK' };
+        const harga = { 'manual': 30000, 'otomatis': 50000, 'hidrolik': 80000 };
+        const maxAntrian = { 'manual': 5, 'otomatis': 7, 'hidrolik': 3 };
+        const mobilEmoji = ['🚗', '🚙', '🚕', '🚓', '🚘', '🚖', '🚐', '🛻'];
+
+        let totalPendapatan = 0;
+        let totalDicuci = 0;
+        let rating = 0;
+
+        function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+        function formatWaktu(d) { const m = Math.floor(d/60); const s = d%60; return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+
+        function tampilkanNotif(pesan, warna) {
+            if (!warna) warna = '#4caf50';
+            const n = document.getElementById('notif');
+            n.textContent = pesan;
+            n.style.backgroundColor = warna;
+            n.classList.add('show');
+            setTimeout(() => n.classList.remove('show'), 4000);
+        }
+
+        function updateDashboard() {
+            document.getElementById('totalDicuci').textContent = totalDicuci;
+            document.getElementById('totalPendapatan').textContent = 'Rp ' + totalPendapatan.toLocaleString('id-ID');
+            document.getElementById('totalAntrian').textContent = queues['manual'].length + queues['otomatis'].length + queues['hidrolik'].length;
+            const el = document.getElementById('totalPendapatan');
+            el.classList.add('updated');
+            setTimeout(() => el.classList.remove('updated'), 500);
+        }
+
+        function pilihLayanan(l) {
+            layananDipilih = l;
+            document.querySelectorAll('.layanan-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('card-' + l).classList.add('selected');
+        }
+
+        function updateTampilanAntrian(layanan) {
+            const container = document.getElementById('slotAntrian' + capitalize(layanan));
+            container.innerHTML = '';
+            queues[layanan].forEach((item, i) => {
+                const div = document.createElement('span');
+                div.className = 'mobil-antrian-item';
+                div.textContent = item.emoji;
+                div.setAttribute('data-nama', item.nama);
+                div.style.animationDelay = (i * 0.1) + 's';
+                container.appendChild(div);
+            });
+        }
+
+        function tambahAntrian() {
+            const nama = document.getElementById('namaInput').value.trim();
+            if (!nama) { tampilkanNotif('❌ Nama tidak boleh kosong!', '#f44336'); return; }
+            if (!layananDipilih) { tampilkanNotif('❌ Pilih layanan dulu!', '#f44336'); return; }
+            if (queues[layananDipilih].length >= maxAntrian[layananDipilih]) {
+                tampilkanNotif('❌ Antrian ' + namaLayanan[layananDipilih] + ' PENUH!', '#f44336');
+                return;
+            }
+
+            const pelanggan = { nama, layanan: layananDipilih, emoji: mobilEmoji[Math.floor(Math.random() * mobilEmoji.length)] };
+            queues[layananDipilih].push(pelanggan);
+            updateTampilanAntrian(layananDipilih);
+            updateDashboard();
+            document.getElementById('namaInput').value = '';
+            layananDipilih = '';
+            document.querySelectorAll('.layanan-card').forEach(c => c.classList.remove('selected'));
+            tampilkanNotif('✅ ' + nama + ' masuk antrian ' + namaLayanan[pelanggan.layanan] + '!');
+            console.log('✅ ENQUEUE: ' + nama);
+        }
+
+        function cuciMobil(layanan) {
+            const queue = queues[layanan];
+            if (queue.length === 0) { tampilkanNotif('⚠️ Antrian kosong!', '#ff9800'); return; }
+            if (mesinCuci[layanan]) { tampilkanNotif('⏳ Sedang mencuci!', '#ff9800'); return; }
+
+            const mobil = queue.shift();
+            mesinCuci[layanan] = true;
+            document.getElementById('btnCuci' + capitalize(layanan)).disabled = true;
+            updateTampilanAntrian(layanan);
+            updateDashboard();
+
+            // Animasi mobil masuk
+            document.getElementById('mobilCuci' + capitalize(layanan)).querySelector('.mobil-sedang-dicuci').textContent = mobil.emoji;
+            
+            // Tampilkan efek
+            document.getElementById('efek' + capitalize(layanan)).style.display = 'block';
+            document.getElementById('mobilBersih' + capitalize(layanan)).querySelector('.mobil-selesai').classList.remove('kinclong');
+
+            const durasi = durasiLayanan[layanan];
+            const progressBar = document.getElementById('progressBar' + capitalize(layanan));
+            const timerText = document.getElementById('timerText' + capitalize(layanan));
+            progressBar.style.width = '0%';
+            timerText.textContent = formatWaktu(durasi);
+
+            console.log('🧽 MENCUCI: ' + mobil.nama);
+
+            let sisa = durasi;
+            timerIntervals[layanan] = setInterval(() => {
+                sisa--;
+                const progress = ((durasi - sisa) / durasi) * 100;
+                progressBar.style.width = progress + '%';
+                timerText.textContent = formatWaktu(sisa);
+
+                if (progress > 80) progressBar.style.background = '#f44336';
+                else if (progress > 40) progressBar.style.background = '#ff9800';
+
+                if (sisa <= 0) {
+                    clearInterval(timerIntervals[layanan]);
+                    mesinCuci[layanan] = false;
+                    document.getElementById('btnCuci' + capitalize(layanan)).disabled = false;
+                    document.getElementById('efek' + capitalize(layanan)).style.display = 'none';
+                    document.getElementById('mobilCuci' + capitalize(layanan)).querySelector('.mobil-sedang-dicuci').textContent = '🚙';
+                    progressBar.style.background = '#4caf50';
+
+                    // Mobil bersih
+                    const mobilBersih = document.getElementById('mobilBersih' + capitalize(layanan)).querySelector('.mobil-selesai');
+                    mobilBersih.textContent = mobil.emoji + '✨';
+                    mobilBersih.classList.add('kinclong');
+
+                    totalDicuci++;
+                    totalPendapatan += harga[layanan];
+                    rating = Math.floor(Math.random() * 3) + 3;
+                    document.getElementById('rating').textContent = '⭐'.repeat(rating);
+                    updateDashboard();
+
+                    // Confetti
+                    for (let i = 0; i < 30; i++) {
+                        setTimeout(() => {
+                            const c = document.createElement('div');
+                            c.className = 'confetti-particle';
+                            c.textContent = ['🎉','✨','🌟','🎊','💫'][Math.floor(Math.random()*5)];
+                            c.style.left = Math.random() * 100 + '%';
+                            c.style.fontSize = (20 + Math.random() * 30) + 'px';
+                            document.body.appendChild(c);
+                            setTimeout(() => c.remove(), 3000);
+                        }, i * 50);
+                    }
+
+                    tampilkanNotif('🎉 SELESAI! ' + mobil.nama + ' kinclong! ⭐' + rating + '/5\n💰 +Rp ' + harga[layanan].toLocaleString('id-ID'));
+                    console.log('✅ SELESAI: ' + mobil.nama);
+                }
+            }, 1000);
+        }
+
+        function resetSemuaAntrian() {
+            if (Object.values(mesinCuci).some(v => v)) {
+                tampilkanNotif('⚠️ Ada mesin mencuci!', '#ff9800');
+                return;
+            }
+            if (Object.values(queues).every(q => q.length === 0)) {
+                tampilkanNotif('⚠️ Antrian sudah kosong!', '#ff9800');
+                return;
+            }
+            if (confirm('Hapus semua antrian?')) {
+                queues['manual'] = []; queues['otomatis'] = []; queues['hidrolik'] = [];
+                updateTampilanAntrian('manual'); updateTampilanAntrian('otomatis'); updateTampilanAntrian('hidrolik');
+                updateDashboard();
+                ['manual','otomatis','hidrolik'].forEach(l => {
+                    document.getElementById('mobilBersih' + capitalize(l)).querySelector('.mobil-selesai').classList.remove('kinclong');
+                    document.getElementById('mobilBersih' + capitalize(l)).querySelector('.mobil-selesai').textContent = '🚗';
+                });
+                tampilkanNotif('🗑 Antrian dihapus!', '#f44336');
+            }
+        }
+
+        // Inisialisasi
+        updateDashboard();
+        ['manual','otomatis','hidrolik'].forEach(l => {
+            document.getElementById('efek' + capitalize(l)).style.display = 'none';
+        });
+
+        console.log('✅ Program siap! Pilih layanan → isi nama → Enqueue → Cuci!');
+    </script>
+</body>
+</html>
